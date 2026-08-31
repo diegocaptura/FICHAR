@@ -1,0 +1,606 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2431;
+    --ink-soft:#2a3346;
+    --paper:#f6f1e7;
+    --paper-dim:#ece5d4;
+    --brass:#b5842c;
+    --brass-dim:#8f6a23;
+    --rust:#a8452f;
+    --moss:#4b6b4f;
+    --line:#d8cdb8;
+    --ink-line:#3a4459;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:0;background:transparent;}
+  .app{
+    font-family:'IBM Plex Sans',sans-serif;
+    color:var(--ink);
+    max-width:520px;
+    margin:0 auto;
+    padding:18px 14px 40px;
+  }
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:18px;
+  }
+  .masthead h1{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin:0;
+    font-weight:600;
+  }
+  .masthead .date{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--brass-dim);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+
+  /* --- punch card --- */
+  .card{
+    position:relative;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:6px;
+    padding:22px 20px 18px;
+    box-shadow:0 10px 24px -12px rgba(28,36,49,.5);
+    overflow:hidden;
+  }
+  .perf-row{
+    position:absolute;
+    top:0; left:0; right:0;
+    height:14px;
+    display:flex;
+    justify-content:space-evenly;
+    align-items:center;
+    background:var(--ink);
+  }
+  .perf{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--paper);
+    opacity:.85;
+  }
+  .card-body{margin-top:14px;}
+  .clock{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:40px;
+    font-weight:600;
+    letter-spacing:.02em;
+    line-height:1;
+  }
+  .status-line{
+    margin-top:6px;
+    font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--brass);
+  }
+
+  .stamps{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:18px;
+  }
+  .stamp{
+    border:1px dashed rgba(246,241,231,.35);
+    border-radius:4px;
+    padding:8px 6px;
+    text-align:center;
+  }
+  .stamp .lbl{
+    font-size:9px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:rgba(246,241,231,.55);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .stamp .val{
+    margin-top:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    font-weight:600;
+  }
+  .stamp.done{border-style:solid;border-color:var(--brass);}
+  .stamp.done .val{color:var(--brass);}
+
+  /* --- action button --- */
+  .action-wrap{margin-top:20px;}
+  .btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:15px 12px;
+    border-radius:5px;
+    border:none;
+    cursor:pointer;
+    background:var(--brass);
+    color:var(--ink);
+    transition:transform .08s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.break{background:var(--paper);color:var(--ink);}
+  .btn.end{background:var(--rust);color:var(--paper);}
+  .btn:disabled{background:rgba(246,241,231,.15);color:rgba(246,241,231,.4);cursor:default;}
+  .btn:disabled:active{transform:none;}
+  .closed-note{
+    margin-top:14px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:rgba(246,241,231,.6);
+    text-align:center;
+  }
+
+  /* --- summary panel --- */
+  .summary{
+    margin-top:14px;
+    background:var(--paper-dim);
+    border-radius:6px;
+    padding:14px 16px;
+    display:none;
+  }
+  .summary.show{display:block;}
+  .summary h3{
+    margin:0 0 10px;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--brass-dim);
+  }
+  .sum-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:5px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .sum-row:last-child{border-bottom:none;}
+  .sum-row .v{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .sum-row.warn .v{color:var(--rust);}
+  .sum-row.ok .v{color:var(--moss);}
+
+  /* --- history --- */
+  .history{margin-top:28px;}
+  .history h2{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    border-bottom:1px solid var(--line);
+    padding-bottom:8px;
+    margin:0 0 4px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:10px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--brass-dim);
+    padding:8px 4px 6px;
+    border-bottom:1px solid var(--line);
+  }
+  td{
+    padding:8px 4px;
+    border-bottom:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;
+    vertical-align:top;
+  }
+  td.horas{font-weight:600;}
+  td.exceso.has{color:var(--rust);}
+  .empty-hist{
+    padding:18px 4px;
+    text-align:center;
+    color:#8a8371;
+    font-size:12px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .totalrow td{
+    border-top:2px solid var(--ink);
+    border-bottom:none;
+    font-weight:700;
+    padding-top:10px;
+  }
+  .loading{
+    text-align:center;
+    padding:30px 0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:#8a8371;
+  }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:28px;
+    transform:translateX(-50%) translateY(8px);
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:10px 18px;
+    border-radius:5px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:10;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+
+<div class="app" id="app">
+  <div class="masthead">
+    <h1>Registro de jornada</h1>
+    <div class="date" id="today-label">—</div>
+  </div>
+
+  <div class="card">
+    <div class="perf-row" id="perf-row"></div>
+    <div class="card-body">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="status-line" id="status-line">Cargando registro de hoy…</div>
+
+      <div class="stamps">
+        <div class="stamp" id="stamp-entrada"><div class="lbl">Entrada</div><div class="val">—</div></div>
+        <div class="stamp" id="stamp-descSal"><div class="lbl">Sale descanso</div><div class="val">—</div></div>
+        <div class="stamp" id="stamp-descEnt"><div class="lbl">Vuelve descanso</div><div class="val">—</div></div>
+        <div class="stamp" id="stamp-salida"><div class="lbl">Salida</div><div class="val">—</div></div>
+      </div>
+
+      <div class="action-wrap">
+        <button class="btn" id="action-btn" disabled>Cargando…</button>
+      </div>
+      <div class="closed-note" id="closed-note" style="display:none;">Jornada cerrada. Mañana empieza un registro nuevo.</div>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <h3>Resumen del día</h3>
+    <div class="sum-row"><span>Tiempo en oficina</span><span class="v" id="sum-total">—</span></div>
+    <div class="sum-row"><span>Descanso tomado</span><span class="v" id="sum-descanso">—</span></div>
+    <div class="sum-row" id="sum-exceso-row"><span>Exceso sobre 30 min</span><span class="v" id="sum-exceso">—</span></div>
+    <div class="sum-row ok"><span>Horas trabajadas netas</span><span class="v" id="sum-neto">—</span></div>
+  </div>
+
+  <div class="history">
+    <h2>Histórico</h2>
+    <div id="history-body"><div class="loading">Cargando histórico…</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var BREAK_ALLOWED_MS = 30*60*1000;
+  var app = {
+    todayKey: null,
+    record: {}, // {entrada, descansoSalida, descansoEntrada, salida} as ISO strings
+    history: [] // [{key, record}]
+  };
+
+  function pad(n){return n<10?'0'+n:''+n;}
+  function dateKey(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  function fmtTime(iso){
+    if(!iso) return '—';
+    var d = new Date(iso);
+    return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  function fmtHM(ms){
+    if(ms<0) ms=0;
+    var totalMin = Math.round(ms/60000);
+    var h = Math.floor(totalMin/60), m = totalMin%60;
+    return h+'h '+pad(m)+'m';
+  }
+  function fmtDateLabel(d){
+    var dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return dias[d.getDay()]+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear();
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  // ---- perforation row ----
+  (function buildPerf(){
+    var row = document.getElementById('perf-row');
+    for(var i=0;i<16;i++){
+      var s = document.createElement('div');
+      s.className='perf';
+      row.appendChild(s);
+    }
+  })();
+
+  // ---- live clock ----
+  function tickClock(){
+    var d = new Date();
+    document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  // ---- storage helpers: three layers, tried in order ----
+  //  1. window.storage  — Claude's cloud storage (works inside Claude, when the service is up)
+  //  2. localStorage    — real persistence when this file is opened directly in a browser
+  //                        (double-clicked, or hosted on your own server). Rock solid, survives
+  //                        closing the tab/computer indefinitely.
+  //  3. in-memory       — last-resort so the app never crashes, but does NOT survive a reload.
+  var memoryStore = {};
+  var cloudAvailable = !!(window.storage && typeof window.storage.set === 'function');
+  var localAvailable = (function(){
+    try{ localStorage.setItem('__test__','1'); localStorage.removeItem('__test__'); return true; }
+    catch(e){ return false; }
+  })();
+  var warnedOnce = false;
+  function warnOnce(msg){
+    if(!warnedOnce){ warnedOnce = true; showToast(msg); }
+  }
+
+  function localGet(key){
+    if(!localAvailable) return memoryStore[key];
+    var v = localStorage.getItem(key);
+    return v !== null ? v : memoryStore[key];
+  }
+  function localSet(key, value){
+    memoryStore[key] = value;
+    if(localAvailable){ try{ localStorage.setItem(key, value); }catch(e){} }
+  }
+  function localListKeys(prefix){
+    if(!localAvailable) return Object.keys(memoryStore).filter(function(k){return k.indexOf(prefix)===0;});
+    var out = [];
+    for(var i=0;i<localStorage.length;i++){
+      var k = localStorage.key(i);
+      if(k && k.indexOf(prefix)===0) out.push(k);
+    }
+    return out;
+  }
+
+  async function saveToday(){
+    var key = 'fichaje:'+app.todayKey, value = JSON.stringify(app.record);
+    localSet(key, value); // always persist locally — this is the layer that actually survives reloads
+    if(cloudAvailable){
+      try{
+        var result = await window.storage.set(key, value, false);
+        if(!result) throw new Error('sin confirmación');
+      }catch(e){
+        console.error(e);
+        if(!localAvailable) warnOnce('No se pudo guardar de forma permanente');
+      }
+    }
+  }
+
+  async function loadToday(){
+    app.todayKey = dateKey(new Date());
+    var key = 'fichaje:'+app.todayKey;
+    if(cloudAvailable){
+      try{
+        var res = await window.storage.get(key, false);
+        if(res){ app.record = JSON.parse(res.value); localSet(key, res.value); return; }
+      }catch(e){ /* fall through to local copy */ }
+    }
+    var local = localGet(key);
+    app.record = local ? JSON.parse(local) : {};
+  }
+
+  async function loadHistory(){
+    var records = [];
+    var seenKeys = {};
+
+    if(cloudAvailable){
+      try{
+        var listRes = await window.storage.list('fichaje:', false);
+        var keys = (listRes && listRes.keys) ? listRes.keys : [];
+        keys = keys.filter(function(k){ return /^fichaje:\d{4}-\d{2}-\d{2}$/.test(k); });
+        for(var i=0;i<keys.length;i++){
+          try{
+            var r = await window.storage.get(keys[i], false);
+            if(r){
+              seenKeys[keys[i]] = true;
+              records.push({key:keys[i].replace('fichaje:',''), record:JSON.parse(r.value)});
+              localSet(keys[i], r.value); // mirror into local storage too
+            }
+          }catch(e){}
+        }
+      }catch(e){ /* cloud list failed, rely on local below */ }
+    }
+
+    // merge in anything only held locally (covers the fallback case, or the cloud being down)
+    var localKeys = localListKeys('fichaje:').filter(function(k){ return /^fichaje:\d{4}-\d{2}-\d{2}$/.test(k); });
+    for(var j=0;j<localKeys.length;j++){
+      var k = localKeys[j];
+      if(!seenKeys[k]){
+        var v = localGet(k);
+        if(v) records.push({key:k.replace('fichaje:',''), record:JSON.parse(v)});
+      }
+    }
+
+    // de-dupe by date, keep first occurrence
+    var byDate = {}, ordered = [];
+    records.forEach(function(r){
+      if(!byDate[r.key]){ byDate[r.key]=true; ordered.push(r); }
+    });
+    ordered.sort(function(a,b){ return a.key < b.key ? 1 : -1; });
+    app.history = ordered;
+    renderHistory();
+  }
+
+  function computeDay(rec){
+    if(!rec.entrada || !rec.salida) return null;
+    var entrada = new Date(rec.entrada), salida = new Date(rec.salida);
+    var total = salida - entrada;
+    var descanso = 0;
+    if(rec.descansoSalida && rec.descansoEntrada){
+      descanso = new Date(rec.descansoEntrada) - new Date(rec.descansoSalida);
+    }
+    var exceso = Math.max(0, descanso - BREAK_ALLOWED_MS);
+    var neto = total - descanso;
+    return {total:total, descanso:descanso, exceso:exceso, neto:neto};
+  }
+
+  function renderHistory(){
+    var body = document.getElementById('history-body');
+    if(!app.history.length){
+      body.innerHTML = '<div class="empty-hist">Aún no hay jornadas cerradas.</div>';
+      return;
+    }
+    var totalNetoAcum = 0;
+    var rows = app.history.map(function(item){
+      var calc = computeDay(item.record);
+      if(!calc){
+        return '<tr><td>'+item.key+'</td><td colspan="3" style="color:#8a8371;">jornada incompleta</td></tr>';
+      }
+      totalNetoAcum += calc.neto;
+      return '<tr>'+
+        '<td>'+item.key+'</td>'+
+        '<td class="horas">'+fmtHM(calc.neto)+'</td>'+
+        '<td>'+fmtHM(calc.descanso)+'</td>'+
+        '<td class="exceso '+(calc.exceso>0?'has':'')+'">'+(calc.exceso>0? '+'+fmtHM(calc.exceso) : '—')+'</td>'+
+        '</tr>';
+    }).join('');
+    body.innerHTML =
+      '<table><thead><tr>'+
+      '<th>Fecha</th><th>Neto</th><th>Descanso</th><th>Exceso</th>'+
+      '</tr></thead><tbody>'+rows+
+      '<tr class="totalrow"><td>Total</td><td class="horas">'+fmtHM(totalNetoAcum)+'</td><td></td><td></td></tr>'+
+      '</tbody></table>';
+  }
+
+  // ---- render today's card ----
+  function renderToday(){
+    document.getElementById('today-label').textContent = fmtDateLabel(new Date());
+    var r = app.record;
+
+    setStamp('stamp-entrada', r.entrada);
+    setStamp('stamp-descSal', r.descansoSalida);
+    setStamp('stamp-descEnt', r.descansoEntrada);
+    setStamp('stamp-salida', r.salida);
+
+    var btn = document.getElementById('action-btn');
+    var status = document.getElementById('status-line');
+    var closedNote = document.getElementById('closed-note');
+    btn.className = 'btn';
+    btn.disabled = false;
+    closedNote.style.display = 'none';
+
+    if(!r.entrada){
+      status.textContent = 'Aún no has fichado';
+      btn.textContent = 'Fichar entrada';
+      btn.onclick = function(){ punch('entrada'); };
+    } else if(r.entrada && !r.descansoSalida && !r.salida){
+      status.textContent = 'En jornada — desde las '+fmtTime(r.entrada);
+      btn.textContent = 'Salir a descanso';
+      btn.onclick = function(){ punch('descansoSalida'); };
+      // allow finishing without a break too, as secondary
+      btn.insertAdjacentHTML('afterend',
+        '<button class="btn end" id="action-btn-2" style="margin-top:8px;">Fichar salida (sin descanso)</button>');
+    } else if(r.descansoSalida && !r.descansoEntrada){
+      status.textContent = 'En descanso — desde las '+fmtTime(r.descansoSalida);
+      btn.className = 'btn break';
+      btn.textContent = 'Volver del descanso';
+      btn.onclick = function(){ punch('descansoEntrada'); };
+    } else if(r.descansoEntrada && !r.salida){
+      status.textContent = 'De vuelta — trabajando';
+      btn.className = 'btn end';
+      btn.textContent = 'Fichar salida';
+      btn.onclick = function(){ punch('salida'); };
+    } else if(r.salida){
+      status.textContent = 'Jornada cerrada';
+      btn.style.display = 'none';
+      closedNote.style.display = 'block';
+    }
+
+    // remove stray secondary button if state doesn't need it
+    var extra = document.getElementById('action-btn-2');
+    if(extra && !(r.entrada && !r.descansoSalida && !r.salida)){
+      extra.remove();
+    } else if(extra){
+      extra.onclick = function(){ punch('salida'); };
+    }
+
+    renderSummary();
+  }
+
+  function setStamp(id, iso){
+    var el = document.getElementById(id);
+    var val = el.querySelector('.val');
+    if(iso){
+      val.textContent = fmtTime(iso);
+      el.classList.add('done');
+    } else {
+      val.textContent = '—';
+      el.classList.remove('done');
+    }
+  }
+
+  function renderSummary(){
+    var summary = document.getElementById('summary');
+    var calc = computeDay(app.record);
+    if(!calc){ summary.classList.remove('show'); return; }
+    summary.classList.add('show');
+    document.getElementById('sum-total').textContent = fmtHM(calc.total);
+    document.getElementById('sum-descanso').textContent = fmtHM(calc.descanso);
+    var excesoRow = document.getElementById('sum-exceso-row');
+    var excesoEl = document.getElementById('sum-exceso');
+    if(calc.exceso>0){
+      excesoRow.className = 'sum-row warn';
+      excesoEl.textContent = '−'+fmtHM(calc.exceso);
+    } else {
+      excesoRow.className = 'sum-row';
+      excesoEl.textContent = 'ninguno';
+    }
+    document.getElementById('sum-neto').textContent = fmtHM(calc.neto);
+  }
+
+  async function punch(field){
+    var extra = document.getElementById('action-btn-2');
+    if(extra) extra.remove();
+    app.record[field] = new Date().toISOString();
+    var labels = {
+      entrada:'Entrada registrada',
+      descansoSalida:'Salida a descanso registrada',
+      descansoEntrada:'Vuelta de descanso registrada',
+      salida:'Salida registrada — jornada cerrada'
+    };
+    showToast(labels[field] || 'Registrado');
+    renderToday();
+    await saveToday();
+    if(field === 'salida'){
+      loadHistory();
+    }
+  }
+
+  async function init(){
+    await loadToday();
+    renderToday();
+    await loadHistory();
+  }
+  init();
+})();
+</script>
