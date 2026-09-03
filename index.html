@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fichaje</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +19,7 @@
     --line:#d8cdb8;
   }
   *{box-sizing:border-box;}
-  body{margin:0;padding:0;background:transparent;}
+  html,body{margin:0;padding:0;background:var(--paper);}
   .app{
     font-family:'IBM Plex Sans',sans-serif;
     color:var(--ink);
@@ -193,6 +199,8 @@
     .history-wrap{display:grid;grid-template-columns:1.3fr .7fr;gap:24px;align-items:start;}
   }
 </style>
+</head>
+<body>
 
 <div class="app" id="app">
   <div class="masthead">
@@ -577,3 +585,6 @@
   init();
 })();
 </script>
+
+</body>
+</html>
